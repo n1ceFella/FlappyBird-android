@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/flappy_bird_bg"
+    tools:context="com.example.flappybird.SplashActivity">
+
+    <ImageButton
+        android:id="@+id/imageView"
+        android:layout_width="140dp"
+        android:layout_height="78dp"
+        android:layout_below="@+id/textView1"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="135dp"
+        android:layout_marginTop="200dp"
+        android:layout_marginEnd="135dp"
+        android:onClick="startGame"
+        android:src="@drawable/reset" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="200dp"
+        android:layout_height="70dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginEnd="100dp"
+        android:text="GO!"
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimary"
+        android:textSize="60sp"
+        android:textStyle="bold"
+
+        />
+</RelativeLayout>
