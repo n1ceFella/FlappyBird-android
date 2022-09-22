@@ -8,8 +8,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        GameEngine gameEngine = new GameEngine(this);
-        setContentView(gameEngine);
+        GameView gameView = new GameView(this);
+        setContentView(gameView);
 
     }
 }

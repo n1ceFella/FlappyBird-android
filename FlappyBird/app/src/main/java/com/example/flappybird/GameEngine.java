@@ -20,190 +20,49 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 
-public class GameEngine extends View
+public class GameEngine
 {
 
-    private Bitmap bg;
-    private Bitmap fg;
-    private Bitmap pipeBot;
-    private Bitmap pipeUp;
+    GameView gameView;
 
-    //scores properties
-    Paint scores = new Paint();
-
-    //For updating animation
-    Handler handler;
-    Runnable runnable;
-    //final int UPDATE_MILISEC = 20;
-    final int UPDATE_MILISEC;
-
-    //Display properties
-    Display display;
-    Point point;
-    int dWidth, dHeight;
-    Rect bgRect;
-    Rect fgRect;
-
-    //Here we store birds animation images
-    Bitmap birdImage;
-    Bitmap birdSubImage;
-
-    //Flying animation
-    int birdPositionX;
-    int birdPositionY;
-
-    //Variable for bird images array
-    int index = 5;
-
-    //var to control bird img cut
-    int imgNum = 0;
-
-    //Fall variable
-    int velocity = 0;
-    //int gravity = 5; (INITIAL)
-    int gravity = 6;
-
-    //Pipe animation coordinates
-    int pipeX;
-    int pipeY;
-
-    //Gap between pipes
-    //final int GAP = 350; (INITIAL)
-    final int GAP;
-
-    int scoreCounter;
-
-    //Stops game drawing
-    boolean inGame;
-
-    //List which populate and containing pipe objects
-    private List<Drawable> drawables;
-
-    public GameEngine(Context context) {
-        super(context);
-        handler = new Handler();
-
-        runnable = new Runnable() {
-            @Override
-            public void run() {
-                invalidate();
-            }
-        };
-
-        inGame = true;
-
-        //Game imgs
-        birdImage = BitmapFactory.decodeResource(getResources(),R.drawable.final1);
-        birdSubImage = Bitmap.createBitmap(birdImage, imgNum * birdImage.getWidth(), 0, birdImage.getWidth() / 3, birdImage.getHeight());
-        bg = BitmapFactory.decodeResource(getResources(),R.drawable.flappy_bird_bg);
-        fg = BitmapFactory.decodeResource(getResources(),R.drawable.flappy_bird_fg);
-        pipeBot = BitmapFactory.decodeResource(getResources(),R.drawable.flappy_bird_pipebottom);
-        pipeUp = BitmapFactory.decodeResource(getResources(),R.drawable.flappy_bird_pipeup);
-
-        scores.setColor(Color.BLACK);
-        scores.setTextSize(50);
-        scores.setTypeface(Typeface.DEFAULT);
-        scores.setAntiAlias(true);
-
-        //Get display size
-        display = ((Activity)getContext()).getWindowManager().getDefaultDisplay();
-        point = new Point();
-        display.getSize(point);
-        dWidth = point.x;
-        dHeight = point.y;
-
-        //Bg and Fg rectangles to draw them on screen properly
-        bgRect = new Rect(0,0,dWidth,dHeight);
-        fgRect = new Rect(0,dHeight - fg.getHeight(),dWidth,dHeight);
-
-        birdPositionX = dWidth / 2 - birdImage.getWidth()/2;
-        birdPositionY = dHeight /2 - birdImage.getHeight()/2;
-
-        pipeX = dWidth;
-        pipeY = dHeight/-3;
-
-        scoreCounter = 0;
-
+    GameEngine(GameView gameView){
+        this.gameView = gameView;
         createFirstObject();
-
-        //Temp
-        if(dWidth < 800) {
-            GAP = dHeight / 4;
-            UPDATE_MILISEC = 30;
-        }
-        else {
-            GAP = 350;
-            UPDATE_MILISEC = 20;
-        }
         fly();
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        if(inGame) {
-            canvas.drawBitmap(bg, null, bgRect, null);
-            animation();
-            fall();
-            checkTouch();
-            getScoreCounter();
 
-            //draw bird
-            canvas.drawBitmap(birdSubImage, birdPositionX, birdPositionY, null);
+    //List which populate and containing pipe objects
+    private List<GameEngine.Drawable> drawables;
 
-            for (Drawable drawable : drawables) {
-                //Draw upper pipe
-                canvas.drawBitmap(pipeUp, drawable.getX(), drawable.getY(), null);
-
-                //Draw lower pipe
-                canvas.drawBitmap(pipeBot, drawable.getX(), drawable.getY() +
-                        pipeUp.getHeight() + GAP, null);
-
-            }
-
-            canvas.drawBitmap(fg, null, fgRect, null);
-            canvas.drawText("Scores: " + scoreCounter, 80, dHeight - (fg.getHeight()/2), scores);
-            handler.postDelayed(runnable, UPDATE_MILISEC);
-        }
+    public List<Drawable> getDrawables() {
+        return drawables;
     }
 
-    //When screen is touched bird fly upwards
-
-    @Override
-    public boolean performClick() {
-        return super.performClick();
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        performClick();
-        int touch = event.getAction();
-        if(touch == MotionEvent.ACTION_DOWN)
-        {
-            //If TEMP (USE ELSE AS INITIAL)
-            if(dWidth < 800) {
-                velocity = -25;
-            }else {
-                velocity = -30;
-            }
-
+    public void resetVelocity(){
+        //If TEMP (USE ELSE AS INITIAL)
+        if(gameView.getdWidth() < 800) {
+            gameView.setVelocity(-25);
+        }else {
+            gameView.setVelocity(-30);
         }
-        return true;
     }
 
     //flying animation
     public void fly(){
         //birdSubImage = Bitmap.createBitmap(birdImage, imgNum * birdImage.getWidth(), 0,
-                //birdImage.getWidth() / 3, birdImage.getHeight());
+        //birdImage.getWidth() / 3, birdImage.getHeight());
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(
                 new java.util.TimerTask() {
                     @Override
                     public void run() {
-                        imgNum++;
-                        if (imgNum >= 3) imgNum = 0;
-                        birdSubImage = Bitmap.createBitmap(birdImage, imgNum * birdImage.getWidth() / 3,
-                                0, birdImage.getWidth() / 3, birdImage.getHeight());
+                        gameView.setImgNum(gameView.getImgNum() + 1);
+                        if (gameView.getImgNum() >= 3) gameView.setImgNum(0);
+
+                        Bitmap tempImg = Bitmap.createBitmap(gameView.getBirdImage(), gameView.getImgNum() * gameView.getBirdImage().getWidth() / 3,
+                                0, gameView.getBirdImage().getWidth() / 3, gameView.getBirdImage().getHeight());
+                        gameView.setBirdSubImage(tempImg);
                     }
                 },
                 200, 200);
@@ -212,51 +71,52 @@ public class GameEngine extends View
     //make bird fall by increasing velocity adding gravity
     public void fall()
     {
-        if(birdPositionY < dHeight - birdSubImage.getHeight() ) {
-            velocity += gravity;
-            birdPositionY = birdPositionY + velocity;
-            if(birdPositionY < 0)
+        if(gameView.getBirdPositionY() < gameView.getdHeight() - gameView.getBirdSubImage().getHeight()) {
+            gameView.setVelocity(gameView.getVelocity() + gameView.getGravity());
+            gameView.setBirdPositionY(gameView.getBirdPositionY() + gameView.getVelocity());
+            if(gameView.getBirdPositionY() < 0)
             {
                 //birdPositionY += 20; (INITIAL)
-                birdPositionY += 5;
+                //birdPositionY += 5;
+                gameView.setBirdPositionY(gameView.getBirdPositionY() + 5);
             }
         }
     }
 
     //Pipes coordinates decrementing here
     //As soon as pipeX coordinates == screen size/3 ,new pair of pipes are created beyond the screen
-    private void animation()
+    public void animation()
     {
-        for(Drawable drawable : new ArrayList<Drawable>(drawables))
+        for(Drawable drawable : new ArrayList<>(drawables))
         {
             drawable.update();
 
             //Temp IF (USE ELSE AS INITIAL)
-            if(dWidth < 800) {
-                if (drawable.getX() == dWidth / 2) {
+            if(gameView.getdWidth() < 800) {
+                if (drawable.getX() == gameView.getdWidth() / 2) {
                     /**
                      *                 drawables.add(new Drawable(pipeX, (int)(Math.random() *
                      *                         (pipeUp.getHeight() -
                      *                                 ((pipeUp.getHeight() * 0.25))) - (pipeUp.getHeight() -
                      *                         (pipeUp.getHeight() * 0.25)))));
                      */
-                    drawables.add(new Drawable(pipeX, (int) (Math.random() *
-                            (dHeight -
-                                    ((dHeight * 0.7))) - (dHeight -
-                            (dHeight * 0.55)))));
+                    drawables.add(new Drawable(gameView.getPipeX(), (int) (Math.random() *
+                            (gameView.getdHeight() -
+                                    ((gameView.getdHeight() * 0.7))) - (gameView.getdHeight() -
+                            (gameView.getdHeight() * 0.55)))));
                 }
-                if (drawable.getX() <= 0 - pipeBot.getWidth()) {
+                if (drawable.getX() <= 0 - gameView.getPipeBot().getWidth()) {
                     drawables.remove(drawable);
                 }
             } else {
-                if(drawable.getX() == dWidth/3 + dWidth/3)
+                if(drawable.getX() == gameView.getdWidth()/3 + gameView.getdWidth()/3)
                 {
-                    drawables.add(new Drawable(pipeX, (int)(Math.random() *
-                            (pipeUp.getHeight() -
-                                    ((pipeUp.getHeight() * 0.25))) - (pipeUp.getHeight() -
-                            (pipeUp.getHeight() * 0.25)))));
+                    drawables.add(new Drawable(gameView.getPipeX(), (int)(Math.random() *
+                            (gameView.getPipeUp().getHeight() -
+                                    ((gameView.getPipeUp().getHeight() * 0.25))) - (gameView.getPipeUp().getHeight() -
+                            (gameView.getPipeUp().getHeight() * 0.25)))));
                 }
-                if (drawable.getX() <= 0 - pipeBot.getWidth()) {
+                if (drawable.getX() <= 0 - gameView.getPipeBot().getWidth()) {
                     drawables.remove(drawable);
                 }
             }
@@ -264,73 +124,73 @@ public class GameEngine extends View
     }
 
     //when bird touch obstacles inGame var == false and game stops
-    private void checkTouch()
+    public void checkTouch()
     {
-        for (Drawable drawable : drawables)
+        for (GameEngine.Drawable drawable : drawables)
         {
             //foreground touch
-            if (birdPositionY + birdSubImage.getHeight() >=
-                    dHeight - fg.getHeight()) {
-                inGame = false;
-                Intent mainIntent = new Intent(getContext(), SplashActivity.class);
+            if (gameView.getBirdPositionY() + gameView.getBirdSubImage().getHeight() >=
+                    gameView.getdHeight() - gameView.getFg().getHeight()) {
+                gameView.setInGame(false);
+                Intent mainIntent = new Intent(gameView.getContext(), SplashActivity.class);
                 //mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                getContext().startActivity(mainIntent);
+                gameView.getContext().startActivity(mainIntent);
             }
             //top pipe front touch
-            else if (drawable.getX() == birdPositionX + birdSubImage.getWidth() &&
-                    birdPositionY <= drawable.getY() +
-                            pipeUp.getHeight()) {
-                inGame = false;
-                Intent mainIntent = new Intent(getContext(), SplashActivity.class);
+            else if (drawable.getX() == gameView.getBirdPositionX() + gameView.getBirdSubImage().getWidth() &&
+                    gameView.getBirdPositionY() <= drawable.getY() +
+                            gameView.getPipeUp().getHeight()) {
+                gameView.setInGame(false);
+                Intent mainIntent = new Intent(gameView.getContext(), SplashActivity.class);
                 //mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                getContext().startActivity(mainIntent);
+                gameView.getContext().startActivity(mainIntent);
             }
             //bottom pipe front touch
-            else if (drawable.getX() == birdPositionX + birdSubImage.getWidth() &&
-                    birdPositionY + birdSubImage.getHeight() >= drawable.getY() +
-                            pipeUp.getHeight() + GAP) {
-                inGame = false;
-                Intent mainIntent = new Intent(getContext(), SplashActivity.class);
+            else if (drawable.getX() == gameView.getBirdPositionX() + gameView.getBirdSubImage().getWidth() &&
+                    gameView.getBirdPositionY() + gameView.getBirdSubImage().getHeight() >= drawable.getY() +
+                            gameView.getPipeUp().getHeight() + gameView.getGAP()) {
+                gameView.setInGame(false);
+                Intent mainIntent = new Intent(gameView.getContext(), SplashActivity.class);
                 //mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                getContext().startActivity(mainIntent);
+                gameView.getContext().startActivity(mainIntent);
             }
             //top pipe lower touch
-            else if ((drawable.getX() <= birdPositionX + birdSubImage.getWidth() &&
-                    (drawable.getX() + pipeUp.getWidth() >= birdPositionX)) &&
-                    ((drawable.getY() + pipeUp.getHeight()) >=
-                            birdPositionY)) {
-                inGame = false;
-                Intent mainIntent = new Intent(getContext(), SplashActivity.class);
+            else if ((drawable.getX() <= gameView.getBirdPositionX() + gameView.getBirdSubImage().getWidth() &&
+                    (drawable.getX() + gameView.getPipeUp().getWidth() >= gameView.getBirdPositionX())) &&
+                    ((drawable.getY() + gameView.getPipeUp().getHeight()) >=
+                            gameView.getBirdPositionY())) {
+                gameView.setInGame(false);
+                Intent mainIntent = new Intent(gameView.getContext(), SplashActivity.class);
                 //mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                getContext().startActivity(mainIntent);
+                gameView.getContext().startActivity(mainIntent);
             }
             //bottom pipe upper touch
-            else if ((drawable.getX() <=  birdPositionX + birdSubImage.getWidth() &&
-                    (drawable.getX() + pipeBot.getWidth() > birdPositionX)) &&
-                    ((drawable.getY() + pipeUp.getHeight() + GAP) <=
-                            (birdPositionY + birdSubImage.getHeight()))) {
-                inGame = false;
-                Intent mainIntent = new Intent(getContext(), SplashActivity.class);
+            else if ((drawable.getX() <=  gameView.getBirdPositionX() + gameView.getBirdSubImage().getWidth() &&
+                    (drawable.getX() + gameView.getPipeBot().getWidth() > gameView.getBirdPositionX())) &&
+                    ((drawable.getY() + gameView.getPipeUp().getHeight() + gameView.getGAP()) <=
+                            (gameView.getBirdPositionY() + gameView.getBirdSubImage().getHeight()))) {
+                gameView.setInGame(false);
+                Intent mainIntent = new Intent(gameView.getContext(), SplashActivity.class);
                 //mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                getContext().startActivity(mainIntent);
+                gameView.getContext().startActivity(mainIntent);
             }
         }
     }
 
     //We create first constant pair of pipes
-    private void createFirstObject()
+    public void createFirstObject()
     {
-        drawables = new ArrayList<Drawable>(2);
-        drawables.add(new Drawable(pipeX, pipeY));
+        drawables = new ArrayList<GameEngine.Drawable>(2);
+        drawables.add(new Drawable(gameView.getPipeX(), gameView.getPipeY()));
     }
 
     //Increment scores when pipeX == birdPositionX
-    private void getScoreCounter()
+    public void scoreCounter()
     {
-        for(Drawable drawable : drawables)
+        for(GameEngine.Drawable drawable : drawables)
         {
-            if((drawable.getX()+ pipeUp.getWidth()) - 1 == birdPositionX) {
-                scoreCounter += 1;
+            if((drawable.getX()+ gameView.getPipeUp().getWidth()) - 1 == gameView.getBirdPositionX()) {
+                gameView.setScoreCounter(gameView.getScoreCounter() + 1);
             }
         }
     }
